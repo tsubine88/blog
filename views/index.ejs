@@ -101,7 +101,7 @@
         <a href="/categories/American" class="ms-auto">View More</a>
     </div>
     <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
-        <% if(food.american != '' ) { %>
+        <% if(food.american !='' ) { %>
             <% food.american.forEach(function(recipe, index){ %>
                 <a href="/recipe/<%= recipe._id %>" class="col text-center category__link">
                     <div class="category__img category__img--lg shadow">
@@ -125,7 +125,7 @@
         <a href="/categories/Chinese" class="ms-auto">View More</a>
     </div>
     <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
-        <% if(food.chinese != '' ) { %>
+        <% if(food.chinese !='' ) { %>
             <% food.chinese.forEach(function(recipe, index){ %>
                 <a href="/recipe/<%= recipe._id %>" class="col text-center category__link">
                     <div class="category__img category__img--lg shadow">

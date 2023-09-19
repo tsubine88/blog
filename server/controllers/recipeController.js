@@ -1,213 +1,244 @@
-
-
 require('../models/database');
 const Category = require('../models/Category');
 const Recipe = require('../models/Recipe');
 const Contact = require('../models/Contact');
+const User = require('../models/User');
+const bcrypt = require('bcrypt'); // Import bcrypt for password comparison
+const {
+    check,
+    validationResult
+} = require('express-validator');
 // GET /
 // homepage
 
-
-exports.homepage = async(req, res) => {
+exports.homepage = async (req, res) => {
     try {
-    const limitNumber = 5;
-    const categories = await Category.find({}).limit(limitNumber);
-    const latest = await Recipe.find({}).sort({_id: -1}).limit(limitNumber);
-    const thai = await Recipe.find({'category': 'Thai' }).limit(limitNumber);
-    const american = await Recipe.find({'category': 'American' }).limit(limitNumber);
-    const chinese = await Recipe.find({'category': 'Chinese' }).limit(limitNumber);
-    
+        const limitNumber = 5;
+        const categories = await Category.find({}).limit(limitNumber);
+        const latest = await Recipe.find({}).sort({
+            _id: -1
+        }).limit(limitNumber);
+        const thai = await Recipe.find({
+            'category': 'Thai'
+        }).limit(limitNumber);
+        const american = await Recipe.find({
+            'category': 'American'
+        }).limit(limitNumber);
+        const chinese = await Recipe.find({
+            'category': 'Chinese'
+        }).limit(limitNumber);
 
-    const food = { latest, thai, american, chinese };
 
-        res.render('index', { title: 'Cookie Blog - Home', categories, food });
+        const food = {
+            latest,
+            thai,
+            american,
+            chinese
+        };
+
+        res.render('index', {
+            title: 'Cookie Blog - Home',
+            categories,
+            food
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
-
-
-
 }
-
-
-
-
-
-
-
-
-
 
 // GET /
 // categories
 
-
-exports.exploreCategories = async(req, res) => {
+exports.exploreCategories = async (req, res) => {
     try {
-    const limitNumber = 20;
-    const categories = await Category.find({}).limit(limitNumber);
+        const limitNumber = 20;
+        const categories = await Category.find({}).limit(limitNumber);
 
-    
-        res.render('categories', { title: 'Cookie Blog - Categories', categories });
+
+        res.render('categories', {
+            title: 'Cookie Blog - Categories',
+            categories
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
-
-
-
 }
 
 // GET categories by id
 
-exports.exploreCategoriesById = async(req, res) => {
+exports.exploreCategoriesById = async (req, res) => {
     try {
         let categoryId = req.params.id;
-    const limitNumber = 20;
-    const categoryById = await Recipe.find({ 'category': categoryId }).limit(limitNumber);
-    res.render('categories', { title: 'Cookie Blog - Categories', categoryById });
+        const limitNumber = 20;
+        const categoryById = await Recipe.find({
+            'category': categoryId
+        }).limit(limitNumber);
+        res.render('categories', {
+            title: 'Cookie Blog - Categories',
+            categoryById
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
-
-
-
 }
-
 
 // get recipe / id
 // recipes
 
-exports.exploreRecipe = async(req, res) => {
+exports.exploreRecipe = async (req, res) => {
     try {
         let recipeId = req.params.id;
 
         const recipe = await Recipe.findById(recipeId);
 
-    
-        res.render('recipe', { title: 'Cookie Blog - Recipe', recipe });
+
+        res.render('recipe', {
+            title: 'Cookie Blog - Recipe',
+            recipe
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
 }
-
-
 
 // post search
 // search
 
-exports.searchRecipe = async(req, res) => {
-
-
-
+exports.searchRecipe = async (req, res) => {
 
     // searchTerm
-
 
     try {
 
         let searchTerm = req.body.searchTerm;
-        let recipe = await Recipe.find( { $text: {$search: searchTerm, $diacriticSensitive: true} } );
-        
-        res.render('search', { title: 'Cookie Blog - Search', recipe});
+        let recipe = await Recipe.find({
+            $text: {
+                $search: searchTerm,
+                $diacriticSensitive: true
+            }
+        });
 
-        } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.render('search', {
+            title: 'Cookie Blog - Search',
+            recipe
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
- 
+
 
 }
-
-
 
 // Get/ explore-latest
 // explore latest
 
-exports.exploreLatest = async(req, res) => {
+exports.exploreLatest = async (req, res) => {
     try {
-       const limitNumber = 20;
-       const recipe = await Recipe.find({}).sort({_id: -1}).limit(limitNumber);
+        const limitNumber = 20;
+        const recipe = await Recipe.find({}).sort({
+            _id: -1
+        }).limit(limitNumber);
 
-    
-        res.render('explore-latest', { title: 'Cookie Blog - Explore Latest', recipe });
+
+        res.render('explore-latest', {
+            title: 'Cookie Blog - Explore Latest',
+            recipe
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
 }
-
-
-
-
-
-
 
 // Get/ explore-random
 // explore random as JSON
 
-exports.exploreRandom = async(req, res) => {
+exports.exploreRandom = async (req, res) => {
     try {
-        let count =await Recipe.find().countDocuments();
+        let count = await Recipe.find().countDocuments();
         let random = Math.floor(Math.random() * count);
         let recipe = await Recipe.findOne().skip(random).exec();
-        
 
-
-
-    
-        res.render('explore-random', { title: 'Cookie Blog - Explore Random', recipe });
+        res.render('explore-random', {
+            title: 'Cookie Blog - Explore Random',
+            recipe
+        });
     } catch (error) {
-        res.status(500).send({message: error.message || "Error occured"});
+        res.status(500).send({
+            message: error.message || "Error occured"
+        });
     }
 }
-
-
-
-
 
 // Get/ submitRecipe
 // submitRecipe
 
-exports.submitRecipe = async(req, res) => {
+exports.submitRecipe = async (req, res) => {
     const infoErrorsObj = req.flash('infoErrors');
     const infoSubmitObj = req.flash('infoSubmit');
 
+    try {
+        // Fetch categories from the database
+        const categories = await Category.find({}).exec();
 
-    res.render('submit-recipe', { title: 'Cookie Blog - Submit Recipe', infoErrorsObj, infoSubmitObj  });
+        res.render('submit-recipe', {
+            title: 'Cookie Blog - Submit Recipe',
+            infoErrorsObj,
+            infoSubmitObj,
+            categories, // Pass the categories to the template
+        });
+    } catch (error) {
+        // Handle errors
+        console.error(error);
+        res.status(500).send('Internal Server Error');
+    }
 
 }
-
 
 // POST/ submitRecipe
 // submitRecipe
 
-exports.submitRecipeOnPost = async(req, res) => {
+exports.submitRecipeOnPost = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json(errors.array())
+    }
 
     try {
-        
+
         let imageUploadFile;
         let uploadPath;
         let newImageName;
 
-        if(!req.files || Object.keys(req.files).length === 0){
+        if (!req.files || Object.keys(req.files).length === 0) {
             console.log('No files were uploaded');
         } else {
 
             imageUploadFile = req.files.image;
             newImageName = Date.now() + imageUploadFile.name;
 
-            uploadPath = require('path').resolve('./') + '/public/uploads/' +newImageName;
+            uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
 
-            imageUploadFile.mv(uploadPath, function(err){
+            imageUploadFile.mv(uploadPath, function (err) {
 
-                if(err) return res.status(500).send(err);
-
-
+                if (err) return res.status(500).send(err);
             })
 
         }
 
-
-
-        const newRecipe = new Recipe ({
+        const newRecipe = new Recipe({
             name: req.body.name,
             description: req.body.description,
             email: req.body.email,
@@ -219,10 +250,8 @@ exports.submitRecipeOnPost = async(req, res) => {
 
         await newRecipe.save();
 
-
-
-    req.flash('infoSubmit', 'Recipe had been added.');
-    res.redirect('/submit-recipe');
+        req.flash('infoSubmit', 'Recipe had been added.');
+        res.redirect('/submit-recipe');
 
     } catch (error) {
         // res.json(error);
@@ -232,70 +261,170 @@ exports.submitRecipeOnPost = async(req, res) => {
 
 }
 
-
-
 // Get/ about
 // about 
 
-exports.about = async(req, res) => {
-    res.render('about', { title: 'Cooking Blog - About'});
+exports.about = async (req, res) => {
+    res.render('about', {
+        title: 'Cooking Blog - About'
+    });
 }
 
-    // get/ contact
-    // contact
 
-    exports.contact = async(req, res) => {
-        const infoErrorObj = req.flash('infoErrors');
-        const infoContactObj = req.flash('infoContact');
+// get register
 
-        res.render('contact', { title: 'Cooking Blog - Contact', infoErrorObj, infoContactObj });
-    }    
+exports.register = async (req, res) => {
+    res.render('register', { error: null });
+}
+
+// post register
+
+exports.newRegister = async (req, res) => {
+    try {
+      const { name, email, password } = req.body;
+  
+      // Check if the email is already registered
+      const existingUser = await User.findOne({ email });
+      if (existingUser) {
+        return res.status(400).render('register', { error: 'Email already exists' });
+      }
+  
+      // Hash the password before saving it to the database
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+  
+      // Create a new user with the hashed password
+      const newUser = new User({
+        name,
+        email,
+        password: hashedPassword, // Store the hashed password
+      });
+  
+      // Save the user to the database
+      await newUser.save();
+  
+      // Redirect to login or another page
+      res.redirect('/login');
+    } catch (error) {
+      console.error(error);
+      // Pass the error message to the view
+      res.status(500).render('register', { error: 'Internal Server Error' });
+    }
+  };
+
+
+
+// get login
+
+// exports.login = async (req, res) => {
+//     res.render('login', { error: null });
+// }
+
+
+// get login
+exports.login = async (req, res) => {
+    try {
+      // Check if the user is logged in
+      const user = req.session.userId ? await User.findById(req.session.userId) : null;
+      
+      res.render('login', { error: null, user }); // Pass the user object to the template
+    } catch (error) {
+      console.error(error);
+      res.status(500).render('login', { error: 'Internal Server Error', user: null });
+    }
+  };
+// post login
+
+exports.logIn = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+  
+      // Find the user by email
+      const user = await User.findOne({ email });
+  
+      // If user doesn't exist or password doesn't match, display an error
+      if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.render('login', { error: 'Invalid credentials', user: null });
+      }
+  
+      // Create a session (e.g., using express-session) to keep the user logged in
+      req.session.userId = user._id;
+  
+      // Redirect to the user's dashboard or another protected page
+      res.redirect('/submit-recipe');
+    } catch (error) {
+      console.error(error);
+      res.status(500).render('login', { error: 'Internal Server Error', user: null });
+    }
+  };
+
+// Logout route
+exports.logout = async (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error(err);
+      }
+      res.redirect('/login'); // Redirect to the login page after logout
+    });
+  };
+
+
+
+
+
+
+
+
+
+
+
+
+// get/ contact
+// contact
+
+exports.contact = async (req, res) => {
+    const infoErrorObj = req.flash('infoErrors');
+    const infoContactObj = req.flash('infoContact');
+
+    res.render('contact', {
+        title: 'Cooking Blog - Contact',
+        infoErrorObj,
+        infoContactObj
+    });
+}
 
 // post contact
 // contact
 
-
-    exports.newContact = async(req, res) => {
-
-        try {
-           
-            const newContact = new Contact ({
-               
-                name: req.body.name,
-                email: req.body.email,
-                subject: req.body.subject,
-                message: req.body.message,
-                
-            });
-    
-            await newContact.save();
-    
-    
-    
-        req.flash('infoContact', 'Contact has been added.');
-        res.redirect('/contact');
-    
-        } catch (error) {
-            // res.json(error);
-            req.flash('infoErrors', error);
-            res.redirect('/contact');
-        }
-    
+exports.newContact = async (req, res) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+        return res.status(422).json(errors.array())
     }
 
+    try {
 
+        const newContact = new Contact({
 
+            name: req.body.name,
+            email: req.body.email,
+            subject: req.body.subject,
+            message: req.body.message,
 
+        });
 
+        await newContact.save();
 
+        req.flash('infoContact', 'Contact has been added.');
+        res.redirect('/contact');
 
+    } catch (error) {
+        // res.json(error);
+        req.flash('infoErrors', error);
+        res.redirect('/contact');
+    }
 
-
-
-
-
-
-
+}
 
 // deleting a recipe
 
@@ -304,14 +433,13 @@ exports.about = async(req, res) => {
 
 //     try {
 //        await Recipe.deleteOne({ name: 'New Chocolate cake'});
-      
+
 //     } catch (error) {
 //         console.log(error);
 //     }
 
 // }
 // deleteRecipe();
-
 
 
 
@@ -332,10 +460,24 @@ exports.about = async(req, res) => {
 // updateRecipe();
 
 
+// insert one
 
+// async function insertDummyCategoryData(){
+// try{
+//     await Category.insertOne([
+//     {
+//                    "name": "Indian",
+//                     "image": "indian-food.jpg"
+//                },
+//             ]);
+// }
+//  catch (error) {
+//     console.log('err', + error)
+// }
+// }
+// insertDummyCategoryData();
 
-
-
+// insert many
 
 // async function insertDummyCategoryData(){
 
@@ -348,7 +490,7 @@ exports.about = async(req, res) => {
 //               {
 //                 "name": "American",
 //                 "image": "american-food.jpg"
-//               }, 
+//               },
 //               {
 //                 "name": "Chinese",
 //                 "image": "chinese-food.jpg"
@@ -356,7 +498,7 @@ exports.about = async(req, res) => {
 //               {
 //                 "name": "Mexican",
 //                 "image": "mexican-food.jpg"
-//               }, 
+//               },
 //               {
 //                 "name": "Indian",
 //                 "image": "indian-food.jpg"
@@ -371,11 +513,7 @@ exports.about = async(req, res) => {
 // }
 
 // }
-
 // insertDummyCategoryData();
-
-
-
 
 
 
@@ -383,8 +521,8 @@ exports.about = async(req, res) => {
 // async function insertDummyRecipeData(){
 
 // try{
-//     await Recipe.insertMany([        
-//       { 
+//     await Recipe.insertMany([
+//       {
 //         "name": "Crab Cakes",
 //         "description": `Maryland Crab Cakes with Quick Tartar Sauce`,
 //         "email": "recipeemail@tsubine.com",
@@ -400,10 +538,10 @@ exports.about = async(req, res) => {
 //           "½ cup panko",
 //           "Vegetable or canola oil, for cooking",
 //         ],
-//         "category": "American", 
+//         "category": "American",
 //         "image": "crab-cakes.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Chinese Steak Tofu",
 //         "description": `Chinese steak & tofu stew`,
 //         "email": "recipeemail@tsubine.com",
@@ -425,10 +563,10 @@ exports.about = async(req, res) => {
 //           "200g tenderstem broccoli",
 //           "350g firm silken tofu",
 //         ],
-//         "category": "Chinese", 
+//         "category": "Chinese",
 //         "image": "chinese-steak-tofu-stew.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Chocolate Banoffe",
 //         "description": `Chocolate Banoffe Whoopie Pie`,
 //         "email": "recipeemail@tsubine.com",
@@ -443,10 +581,10 @@ exports.about = async(req, res) => {
 //           "3 bananas",
 //           "icing sugar , for dusting",
 //         ],
-//         "category": "American", 
+//         "category": "American",
 //         "image": "chocolate-banoffe-whoopie-pies.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Grilled Lobster Rolls",
 //         "description": `Tasty Lobster Rolls`,
 //         "email": "recipeemail@tsubine.com",
@@ -458,10 +596,10 @@ exports.about = async(req, res) => {
 //           "6 submarine rolls",
 //           "½ an iceberg lettuce",
 //         ],
-//         "category": "American", 
+//         "category": "American",
 //         "image": "grilled-lobster-rolls.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Key Lime Pie",
 //         "description": `Tastiest Key Lime Pie`,
 //         "email": "recipeemail@tsubine.com",
@@ -478,10 +616,10 @@ exports.about = async(req, res) => {
 //           "1 teaspoon grated lime zest",
 //           "8 to 10 thin lime slices",
 //         ],
-//         "category": "American", 
+//         "category": "American",
 //         "image": "key-lime-pie.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Southern Fried Chicken",
 //         "description": `Finger Lickin' Fried Chicken`,
 //         "email": "recipeemail@tsubine.com",
@@ -494,10 +632,10 @@ exports.about = async(req, res) => {
 //           "4 pounds bone-in skin-on chicken pieces",
 //           "Vegetable oil, for frying",
 //         ],
-//         "category": "American", 
+//         "category": "American",
 //         "image": "southern-friend-chicken.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Spring Rolls",
 //         "description": `CANTONESE SPRING ROLLS`,
 //         "email": "recipeemail@tsubine.com",
@@ -509,10 +647,10 @@ exports.about = async(req, res) => {
 //           "½ teaspoon cornstarch",
 //           "¼ teaspoon white pepper",
 //         ],
-//         "category": "Chinese", 
+//         "category": "Chinese",
 //         "image": "spring-rolls.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Stir Fry",
 //         "description": `Stir Fried Vegetables`,
 //         "email": "recipeemail@tsubine.com",
@@ -533,10 +671,10 @@ exports.about = async(req, res) => {
 //           "3 scallions, thinly sliced, white/light green and dark green parts separated",
 //           "1 tablespoon grated fresh ginger",
 //         ],
-//         "category": "Chinese", 
+//         "category": "Chinese",
 //         "image": "stir-fried-vegetables.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Pinch Salad",
 //         "description": `Chinese Pinch Salad`,
 //         "email": "recipeemail@tsubine.com",
@@ -552,10 +690,10 @@ exports.about = async(req, res) => {
 //           "50 g fine rice noodles",
 //           "½ a bunch of fresh coriander (15g)",
 //         ],
-//         "category": "Chinese", 
+//         "category": "Chinese",
 //         "image": "thai-chinese-inspired-pinch-salad.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Green Curry",
 //         "description": `Thai Green Curry`,
 //         "email": "recipeemail@tsubine.com",
@@ -573,10 +711,10 @@ exports.about = async(req, res) => {
 //           "good handful of basil leaves",
 //           "boiled rice, to serve",
 //         ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "thai-green-curry.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Vegetable Broth",
 //         "description": `Thai Inspired Vegetable Broth`,
 //         "email": "recipeemail@tsubine.com",
@@ -595,10 +733,10 @@ exports.about = async(req, res) => {
 //           "1 small punnet shiso cress",
 //           "1 lime",
 //         ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "thai-inspired-vegetable-broth.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Red Chicken Soup",
 //         "description": `Thai Red Chicken Soup`,
 //         "email": "recipeemail@tsubine.com",
@@ -609,10 +747,10 @@ exports.about = async(req, res) => {
 //           "100 g Thai red curry paste",
 //           "1 x 400 ml tin of light coconut milk",
 //          ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "thai-red-chicken-soup.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Mussels",
 //         "description": `Thai Style Mussels`,
 //         "email": "recipeemail@tsubine.com",
@@ -628,10 +766,10 @@ exports.about = async(req, res) => {
 //           "1 tablespoon fish sauce",
 //           "1 lime",
 //         ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "thai-style-mussels.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Tom Daley",
 //         "description": `Tom Daley's sweet & sour chicken`,
 //         "email": "recipeemail@tsubine.com",
@@ -656,12 +794,12 @@ exports.about = async(req, res) => {
 //           "100 g baby sweetcorn",
 //           "1 teaspoon runny honey",
 //           "½ a bunch of fresh coriander , (15g)",
-         
+
 //         ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "tom-daley.jpg"
 //       },
-//       { 
+//       {
 //         "name": "Pad Thai",
 //         "description": `Veggie Pad Thai`,
 //         "email": "recipeemail@tsubine.com",
@@ -683,9 +821,9 @@ exports.about = async(req, res) => {
 //           "dried chilli flakes",
 //           "½ a cos lettuce",
 //           "½ a mixed bunch of fresh basil, mint and coriander , (15g)",
-                  
+
 //         ],
-//         "category": "Thai", 
+//         "category": "Thai",
 //         "image": "veggie-pad-thai.jpg"
 //       },
 
@@ -697,7 +835,3 @@ exports.about = async(req, res) => {
 // }
 
 // insertDummyRecipeData();
-
-
-
-  
