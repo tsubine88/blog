@@ -1,9 +1,13 @@
+
+const authMiddleware = require('../models/authMiddleware');
 const express = require('express');
+
+
 const router = express.Router();
 const recipeController = require('../controllers/recipeController');
 const bodyParser = require('body-parser');
 
-const authMiddleware = require('../models/authMiddleware');
+
 
 const {
     check
@@ -21,6 +25,7 @@ router.get('/categories/:id', recipeController.exploreCategoriesById);
 router.post('/search', recipeController.searchRecipe);
 router.get('/explore-latest', recipeController.exploreLatest);
 router.get('/explore-random', recipeController.exploreRandom);
+
 router.get('/submit-recipe', authMiddleware.isAuthenticated, recipeController.submitRecipe);
 router.post('/submit-recipe', urlencodedParser, [
     check('name', 'The Name must be at least 3+ characters long')
@@ -32,6 +37,14 @@ router.post('/submit-recipe', urlencodedParser, [
         .isEmail()
         .normalizeEmail()
 ], recipeController.submitRecipeOnPost);
+router.get('/edit-recipe/:id', authMiddleware.isAuthenticated, recipeController.editRecipe);
+router.post('/edit-recipe/:id', urlencodedParser, [
+    check('name', 'The Name must be at least 3+ characters long')
+        .exists()
+        .isLength({
+            min: 3,
+        }),
+    ], recipeController.editRecipeOnPost);
 router.get('/about', recipeController.about);
 router.get('/register', recipeController.register);
 router.post('/register', recipeController.newRegister);

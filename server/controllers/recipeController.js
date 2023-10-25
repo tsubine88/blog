@@ -11,8 +11,12 @@ const {
 // GET /
 // homepage
 
+// Update the recipeController.homepage route with defined "user" constant and also render "user"
 exports.homepage = async (req, res) => {
     try {
+        // Check if the user is logged in
+        const user = req.session.userId ? await User.findById(req.session.userId) : null;
+
         const limitNumber = 5;
         const categories = await Category.find({}).limit(limitNumber);
         const latest = await Recipe.find({}).sort({
@@ -28,7 +32,6 @@ exports.homepage = async (req, res) => {
             'category': 'Chinese'
         }).limit(limitNumber);
 
-
         const food = {
             latest,
             thai,
@@ -39,14 +42,17 @@ exports.homepage = async (req, res) => {
         res.render('index', {
             title: 'Cookie Blog - Home',
             categories,
-            food
+            food,
+            user: user || null, // Pass the user object or null if not defined
         });
+
     } catch (error) {
         res.status(500).send({
-            message: error.message || "Error occured"
+            message: error.message || "Error occurred"
         });
     }
 }
+
 
 // GET /
 // categories
@@ -244,7 +250,8 @@ exports.submitRecipeOnPost = async (req, res) => {
             email: req.body.email,
             ingredients: req.body.ingredients,
             category: req.body.category,
-            image: newImageName
+            image: newImageName,
+            // user: req.session.userId // Set the user ID
 
         });
 
@@ -260,6 +267,106 @@ exports.submitRecipeOnPost = async (req, res) => {
     }
 
 }
+exports.editRecipe = async (req, res) => {
+    const infoErrorsObj = req.flash('infoErrors');
+    const infoSubmitObj = req.flash('infoSubmit');
+    
+    
+    try {
+        const recipeId = req.params.id;
+        const recipe = await Recipe.findById(recipeId);
+        const categories = await Category.find({});
+
+        if (!recipe) {
+            return res.status(404).render('not-found', {
+                title: 'Cookie Blog - Not Found',
+                message: 'Recipe not found.',
+            });
+        }
+
+        res.render('edit-recipe', {
+            title: 'Cookie Blog - Edit Recipe',
+            infoErrorsObj,
+            infoSubmitObj,
+            recipe,
+            categories,
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: error.message || "Error occurred"
+        });
+    }
+}
+
+exports.editRecipeOnPost = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json(errors.array());
+    }
+
+    let recipeId; // Define recipeId here to ensure it's in scope
+
+    try {
+        recipeId = req.params.id;
+        const existingRecipe = await Recipe.findById(recipeId);
+
+        if (!existingRecipe) {
+            return res.status(404).render('not-found', {
+                title: 'Cookie Blog - Not Found',
+                message: 'Recipe not found.',
+            });
+        }
+
+        // Check if the logged-in user is the owner of the recipe
+        const loggedInUserId = req.session.userId;
+        if (existingRecipe.email !== req.body.email || existingRecipe.user.toString() !== loggedInUserId) {
+            return res.status(403).render('forbidden', {
+                title: 'Cookie Blog - Forbidden',
+                message: 'You do not have permission to edit this recipe.',
+            });
+        }
+
+        let imageUploadFile;
+        let uploadPath;
+        let newImageName;
+
+        if (!req.files || Object.keys(req.files).length === 0) {
+            console.log('No files were uploaded');
+        } else {
+            imageUploadFile = req.files.image;
+            newImageName = Date.now() + imageUploadFile.name;
+            uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
+
+            imageUploadFile.mv(uploadPath, function (err) {
+                if (err) return res.status(500).send(err);
+            });
+        }
+
+        // Update the existing recipe with the new data
+        existingRecipe.name = req.body.name;
+        existingRecipe.description = req.body.description;
+        existingRecipe.email = req.body.email;
+        existingRecipe.ingredients = req.body.ingredients;
+        existingRecipe.category = req.body.category;
+        existingRecipe.image = newImageName;
+
+        await existingRecipe.save();
+
+        req.flash('infoSubmit', 'Recipe has been updated.');
+        res.redirect(`/edit-recipe/${recipeId}`);
+
+    } catch (error) {
+        req.flash('infoErrors', error);
+        res.redirect(`/edit-recipe/${recipeId}`);
+    }
+};
+
+
+
+
+
+
+
 
 // Get/ about
 // about 
@@ -351,7 +458,7 @@ exports.logIn = async (req, res) => {
       req.session.userId = user._id;
   
       // Redirect to the user's dashboard or another protected page
-      res.redirect('/submit-recipe');
+      res.redirect('/');
     } catch (error) {
       console.error(error);
       res.status(500).render('login', { error: 'Internal Server Error', user: null });
