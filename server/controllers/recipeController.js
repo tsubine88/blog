@@ -368,6 +368,97 @@ exports.editRecipeOnPost = async (req, res) => {
 
 
 
+exports.editRecipe = async (req, res) => {
+    const infoErrorsObj = req.flash('infoErrors');
+    const infoSubmitObj = req.flash('infoSubmit');
+    const recipeId = req.params.id;
+    try {
+        
+        const recipe = await Recipe.findById(recipeId);
+        const categories = await Category.find({});
+
+        if (!recipe) {
+            return res.status(404).render('not-found', {
+                title: 'Cookie Blog - Not Found',
+                message: 'Recipe not found.',
+            });
+        }
+
+        res.render('edit-recipe', {
+            title: 'Cookie Blog - Edit Recipe',
+            recipe,
+            categories,
+            infoErrorsObj,
+            infoSubmitObj,
+        });
+    } catch (error) {
+        res.status(500).send({
+            message: error.message || "Error occurred"
+        });
+    }
+}
+
+
+exports.editRecipeOnPost = async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(422).json(errors.array());
+    }
+
+    try {
+        const recipeId = req.params.id;
+        const existingRecipe = await Recipe.findById(recipeId);
+
+        if (!existingRecipe) {
+            return res.status(404).render('not-found', {
+                title: 'Cookie Blog - Not Found',
+                message: 'Recipe not found.',
+            });
+        }
+
+        let imageUploadFile;
+        let uploadPath;
+        let newImageName;
+
+        if (!req.files || Object.keys(req.files).length === 0) {
+            console.log('No files were uploaded');
+        } else {
+            imageUploadFile = req.files.image;
+            newImageName = Date.now() + imageUploadFile.name;
+            uploadPath = require('path').resolve('./') + '/public/uploads/' + newImageName;
+
+            imageUploadFile.mv(uploadPath, function (err) {
+                if (err) return res.status(500).send(err);
+            });
+        }
+
+        // Update the existing recipe with the new data
+        existingRecipe.name = req.body.name;
+        existingRecipe.description = req.body.description;
+        existingRecipe.email = req.body.email;
+        existingRecipe.ingredients = req.body.ingredients;
+        existingRecipe.category = req.body.category;
+        existingRecipe.image = newImageName;
+
+        await existingRecipe.save();
+
+        req.flash('infoSubmit', 'Recipe has been updated.');
+        res.redirect(`/edit-recipe/${recipeId}`);
+
+    } catch (error) {
+        req.flash('infoErrors', error);
+        res.redirect(`/edit-recipe/${recipeId}`);
+    }
+}
+
+
+
+
+
+
+
+
+
 // Get/ about
 // about 
 
