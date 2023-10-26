@@ -38,17 +38,34 @@ router.post('/submit-recipe', urlencodedParser, [
         .normalizeEmail()
 ], recipeController.submitRecipeOnPost);
 router.get('/edit-recipe/:id', authMiddleware.isAuthenticated, recipeController.editRecipe);
+<<<<<<< HEAD
 
+=======
+<<<<<<< HEAD
+=======
+
+>>>>>>> 4d59fae3865ca7c76cb3d8e9e5d18d5117e52c4e
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
 router.post('/edit-recipe/:id', urlencodedParser, [
     check('name', 'The Name must be at least 3+ characters long')
         .exists()
         .isLength({
             min: 3,
         }),
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+    ], recipeController.editRecipeOnPost);
+=======
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
     // Add other validation checks as needed
 ], recipeController.editRecipeOnPost);
 
 
+<<<<<<< HEAD
+=======
+>>>>>>> 4d59fae3865ca7c76cb3d8e9e5d18d5117e52c4e
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
 router.get('/about', recipeController.about);
 router.get('/register', recipeController.register);
 router.post('/register', recipeController.newRegister);

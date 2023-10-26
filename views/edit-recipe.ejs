@@ -24,13 +24,21 @@
             <!-- Existing Email Field -->
             <div class="col-12">
                 <label for="email" class="form-label">Email</label>
+<<<<<<< HEAD
                 <input type="email" name="email" id="email" class="form-control" value="<%= recipe.email %>" readonly autocomplete="email">
+=======
+                <input type="email" name="email" id="email" class="form-control" value="<%= recipe.email %>" readonly>
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
             </div>
 
             <!-- Existing Recipe Name Field -->
             <div class="col-12">
                 <label for="name" class="form-label">Recipe Name</label>
+<<<<<<< HEAD
                 <input type="text" name="name" id="name" class="form-control" value="<%= recipe.name %>" required autocomplete="name">
+=======
+                <input type="text" name="name" id="name" class="form-control" value="<%= recipe.name %>" required>
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
             </div>
 
             <!-- Existing Description Field -->
@@ -46,15 +54,29 @@
                 <div class="ingredientList">
                     <% recipe.ingredients.forEach(ingredient => { %>
                         <div class="ingredientDiv mb-1">
+<<<<<<< HEAD
                             <input type="text" name="ingredients" class="form-control" value="<%= ingredient %>" autocomplete="ingredients">
+=======
+                            <input type="text" name="ingredients" class="form-control" value="<%= ingredient %>">
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
                         </div>
                     <% }); %>
                 </div>
             </div>
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+
+            <!-- Add Ingredients Button (if needed) -->
+            <!-- ... -->
+=======
+>>>>>>> 4d59fae3865ca7c76cb3d8e9e5d18d5117e52c4e
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
             <div class="col-12">
                 <button type="button" class="btn btn-outline-primary" id="addIngredientsBtn">+
                     Ingredients</button>
             </div>
+<<<<<<< HEAD
             <!-- Add Ingredients Button (if needed) -->
             <!-- ... -->
 
@@ -62,6 +84,18 @@
             <div class="col-12">
                 <label for="category">Select Category</label>
                 <select name="category" class="form-select form-control" aria-label="Category" autocomplete="category">
+=======
+<<<<<<< HEAD
+=======
+            <!-- Add Ingredients Button (if needed) -->
+            <!-- ... -->
+
+>>>>>>> 4d59fae3865ca7c76cb3d8e9e5d18d5117e52c4e
+            <!-- Existing Category Field -->
+            <div class="col-12">
+                <label for="category">Select Category</label>
+                <select name="category" class="form-select form-control" aria-label="Category">
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
                     <option selected>Select Category</option>
                     <% categories.forEach(category => { %>
                         <option value="<%= category.name %>" <%= (category.name === recipe.category) ? 'selected' : '' %>><%= category.name %></option>
@@ -72,7 +106,11 @@
             <!-- Existing Image Field -->
             <div class="col-12">
                 <label for="image">Product Image</label>
+<<<<<<< HEAD
                 <input type="file" class="form-control" name="image" accept="image/*" autocomplete="image">
+=======
+                <input type="file" class="form-control" name="image" accept="image/*">
+>>>>>>> 3765d89748c3afd94f11a55583bc5ceb41094862
             </div>
 
             <!-- Submit Button -->
